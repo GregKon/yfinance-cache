@@ -1,6 +1,27 @@
-[build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
+[project]
+name = "yfinance-cache"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Your Name",email = "you@example.com"}
 ]
-build-backend = "setuptools.build_meta"
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10,<4.0"
+dependencies = [
+    "pytest (>=8.3.5,<9.0.0)",
+    "python-dateutil (>=2.8.2,<3.0.0)",
+    "numpy (>=2.2.4,<3.0.0)",
+    "pandas (>=2.2.3,<3.0.0)",
+    "yfinance (>=0.2.54,<0.3.0)",
+    "exchange-calendars (>=4.9,<5.0)",
+    "scipy (>=1.15.2,<2.0.0)",
+    "pulp (>=3.0.2,<4.0.0)",
+    "appdirs (>=1.4.4,<2.0.0)",
+    "requests-cache (>=1.2.1,<2.0.0)",
+    "requests-ratelimiter (>=0.7.0,<0.8.0)"
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+alias python='poetry run python'
 _main() (
 	EXCHANGES=(usa nze asx tlv)
 	PERIODS=(h d w)
