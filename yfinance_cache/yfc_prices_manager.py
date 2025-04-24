@@ -1049,9 +1049,12 @@ class PriceHistory:
                 for dt in divs_df.index:
                     if dt == self.h.index[0]:
                         hist_before = self.manager.GetHistory(yfcd.Interval.Days1).get(start=dt.date()-timedelta(days=7), end=dt.date(), adjust_splits=False, adjust_divs=False)
-                        close_before = hist_before["Close"].iloc[-1]
-                        if np.isnan(close_before):
-                            raise Exception("'close_before' is NaN")
+                        if not hist_before.empty:
+                          close_before = hist_before["Close"].iloc[-1]
+                          if np.isnan(close_before):
+                              raise Exception("'close_before' is NaN")
+                        else:
+                            continue
                     else:
                         if dt not in self.h.index:
                             continue
@@ -2216,7 +2219,7 @@ class PriceHistory:
                 df_divs['Close repaired?'] = df['Repaired?'].ffill().shift(1).loc[df_divs.index]
                 close_before_na = df_divs['Close before'].isna().to_numpy()
                 if close_before_na[0]:
-                    # Shouldn't be a problem because this row should already be in cache, 
+                    # Shouldn't be a problem because this row should already be in cache,
                     # or is outside fetch range. So can be dropped.
                     if len(df_divs) == 1:
                         df_divs = pd.DataFrame()
@@ -2229,7 +2232,7 @@ class PriceHistory:
                         for i in np.where(close_before_na)[0]:
                             dt = df_divs.index[i]
                             df_divs.loc[dt, 'Close before'] = df['Close'].dropna().shift(1).loc[dt-timedelta(days=4):dt].iloc[-1]
-                        
+
                     df_divs['FetchDate'] = fetch_dt_utc
                     df_divs['Desplitted?'] = False
                     if debug_yfc:
@@ -3254,7 +3257,7 @@ class PriceHistory:
         return self._fixPricesSuddenChange(df, n, correct_dividend=True)
 
     def _fixBadStockSplits(self, df):
-        # Original logic only considered latest split adjustment could be missing, but 
+        # Original logic only considered latest split adjustment could be missing, but
         # actually **any** split adjustment can be missing. So check all splits in df.
         #
         # Improved logic looks for BIG daily price changes that closely match the
@@ -3314,7 +3317,7 @@ class PriceHistory:
 
         OHLC = ['Open', 'High', 'Low', 'Close']
 
-        # Do not attempt repair of the split is small, 
+        # Do not attempt repair of the split is small,
         # could be mistaken for normal price variance
         if 0.8 < split < 1.25:
             yfcl.TraceExit(log_func + ": aborting, split too near 1.0")
@@ -3328,10 +3331,10 @@ class PriceHistory:
         debug_cols = ['Open', 'Close']
         df_debug = df_debug.drop([c for c in OHLC if c not in debug_cols], axis=1, errors='ignore')
 
-        # Calculate daily price % change. To reduce effect of price volatility, 
+        # Calculate daily price % change. To reduce effect of price volatility,
         # calculate change for each OHLC column.
         if self.interday and self.interval != yfcd.Interval.Days1 and split not in [100.0, 100, 0.001]:
-            # Avoid using 'Low' and 'High'. For multiday intervals, these can be 
+            # Avoid using 'Low' and 'High'. For multiday intervals, these can be
             # very volatile so reduce ability to detect genuine stock split errors
             _1d_change_x = np.full((n, 2), 1.0)
             price_data = df2[['Open','Close']].to_numpy()
@@ -3586,9 +3589,9 @@ class PriceHistory:
         if correct_columns_individually:
             f_corrected = np.full(n, False)
             if correct_volume:
-                # If Open or Close is repaired but not both, 
+                # If Open or Close is repaired but not both,
                 # then this means the interval has a mix of correct
-                # and errors. A problem for correcting Volume, 
+                # and errors. A problem for correcting Volume,
                 # so use a heuristic:
                 # - if both Open & Close were Nx bad => Volume is Nx bad
                 # - if only one of Open & Close are Nx bad => Volume is 0.5*Nx bad
@@ -3602,7 +3605,7 @@ class PriceHistory:
                 if appears_suspended and (idx_latest_active is not None and idx_latest_active >= idx_first_f):
                     # Suspended midway during data date range.
                     # 1: process data before suspension in index-ascending (date-descending) order.
-                    # 2: process data after suspension in index-descending order. Requires signals to be reversed, 
+                    # 2: process data after suspension in index-descending order. Requires signals to be reversed,
                     #    then returned ranges to also be reversed, because this logic was originally written for
                     #    index-ascending (date-descending) order.
                     fj = f[:, j]
@@ -3693,7 +3696,7 @@ class PriceHistory:
             if appears_suspended and (idx_latest_active is not None and idx_latest_active >= idx_first_f):
                 # Suspended midway during data date range.
                 # 1: process data before suspension in index-ascending (date-descending) order.
-                # 2: process data after suspension in index-descending order. Requires signals to be reversed, 
+                # 2: process data after suspension in index-descending order. Requires signals to be reversed,
                 #    then returned ranges to also be reversed, because this logic was originally written for
                 #    index-ascending (date-descending) order.
                 ranges_before = map_signals_to_ranges(f[idx_latest_active:], f_up[idx_latest_active:], f_down[idx_latest_active:])
@@ -4220,7 +4223,7 @@ class PriceHistory:
                 if div['Dividends'] == 0.0:
                     continue
                 f1 = self.h.index < dt
-                # Update: add a small 2min buffer, in case we are adjusting data fetched just before 
+                # Update: add a small 2min buffer, in case we are adjusting data fetched just before
                 # this div, so obviously the data already has div applied:
                 f2 = self.h["LastDivAdjustDt"] < (div["FetchDate"] - timedelta(minutes=2))
                 f = f1 & f2
