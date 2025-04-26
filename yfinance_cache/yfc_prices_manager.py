@@ -484,6 +484,8 @@ class PriceHistory:
                 h_divs = self.h.loc[self.h["Dividends"]!=0, ["Dividends", "FetchDate"]]
                 h_divs_since = h_divs[h_divs.index > cached_new_divs.index.max()]
                 if not h_divs_since.empty:
+                    import pandas as pd
+                    pd.options.mode.chained_assignment = None  # Wyciszanie Warning
                     if 'Desplitted?' not in cached_new_divs.columns:
                         cached_new_divs['Desplitted?'] = False  # assume
                     h_divs_since['Desplitted?'] = True
